@@ -9,6 +9,12 @@ import { useI18n } from '@/components/I18nProvider'
 
 type Tab = 'vehicles' | 'reparations' | 'recurring-bills'
 
+const tableMap: Record<Tab, string> = {
+  vehicles: 'vehicles',
+  reparations: 'reparations',
+  'recurring-bills': 'recurring_bills', // 👈 mapping trattino → underscore
+}
+
 export default function Dashboard() {
   const router = useRouter()
   const sb = supabaseBrowser()
@@ -37,9 +43,8 @@ export default function Dashboard() {
   }
 
   const loadTab = async () => {
-    let from = tab
-    if (tab === 'recurring-bills') from = 'recurring_bills'
-    const { data, error } = await sb.from(from).select('*').order('created_at', { ascending: false })
+    const table = tableMap[tab]
+    const { data, error } = await sb.from(table).select('*').order('created_at', { ascending: false })
     if (error) { console.error(error); setRows([]); return }
     setRows(data || [])
   }
@@ -251,7 +256,7 @@ function Reparations({
           className="btn btn-primary"
           onClick={() => { if (!vehicleId || !title.trim()) return; const amount = cost ? Number(cost) : null; onAdd({ vehicle_id: vehicleId, title, amount }); setTitle(''); setCost('') }}
         >
-          {t('add')}
+          <Plus size={16} /> {t('add')}
         </button>
       </div>
 
@@ -310,7 +315,7 @@ function RecurringBills({
           className="btn btn-primary"
           onClick={() => { if (!vehicleId || !title.trim() || !nextDue) return; const amt = amount ? Number(amount) : null; onAdd({ vehicle_id: vehicleId, title, amount: amt, interval, next_due: nextDue }); setTitle(''); setAmount(''); setNextDue('') }}
         >
-          {t('add')}
+          <Plus size={16} /> {t('add')}
         </button>
       </div>
 

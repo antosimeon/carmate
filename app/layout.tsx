@@ -3,10 +3,7 @@ import type { Metadata } from 'next'
 import Providers from './providers'
 import Header from '@/components/Header'
 
-export const metadata: Metadata = {
-  title: 'CarMate',
-  description: 'Gestisci veicoli, riparazioni e spese ricorrenti.',
-}
+export const metadata: Metadata = { title: 'CarMate', description: 'Gestisci veicoli, riparazioni e spese ricorrenti.' }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
