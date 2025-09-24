@@ -2,7 +2,8 @@
 
 import { useI18n } from '@/components/I18nProvider'
 
-const BASE = process.env.NEXT_PUBLIC_BASE_PATH || '' // '' locally, '/<repo>' on GitHub Pages
+const REPO = 'carmate'
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH || (process.env.NODE_ENV === 'production' ? `/${REPO}` : '') // '' locally, '/<repo>' on GitHub Pages
 
 export default function Header() {
   const { t, locale, setLocale } = useI18n()

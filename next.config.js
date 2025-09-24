@@ -14,5 +14,9 @@ module.exports = {
   // Prefix all routes and assets when deploying to GH Pages
   basePath: isGithubPages ? `/${repo}` : undefined,
   assetPrefix: isGithubPages ? `/${repo}/` : undefined,
+,
+  // Expose the base path to client code
+  env: {
+    NEXT_PUBLIC_BASE_PATH: isGithubPages ? `/${repo}` : ''
+  }
 };
-
