@@ -1,4 +1,4 @@
-# Family Dashboard (GitHub Pages + Supabase)
+# CarMate (GitHub Pages + Supabase)
 
 A shareable personal dashboard (recipes, vehicles, reminders) using **Next.js static export** on **GitHub Pages** and **Supabase** for data/auth/storage.
 
