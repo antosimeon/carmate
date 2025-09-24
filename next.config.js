@@ -1,15 +1,18 @@
 // next.config.js
-const isPages = process.env.GITHUB_PAGES === 'true'
-const repo = process.env.GITHUB_REPOSITORY?.split('/')[1] || 'carmate'
+const isGithubPages = process.env.GITHUB_PAGES === 'true';
+const repo = 'carmate';
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+module.exports = {
+  // Needed for GitHub Pages
   output: 'export',
-  images: { unoptimized: true },
   trailingSlash: true,
-  // basePath affects routes; assetPrefix affects static assets
-  basePath: isPages ? `/${repo}` : undefined,
-  assetPrefix: isPages ? `/${repo}/` : undefined,
-}
 
-module.exports = nextConfig
+  // Make next/image work with static export
+  images: { unoptimized: true },
+
+  // Prefix all routes and assets when deploying to GH Pages
+  basePath: isGithubPages ? `/${repo}` : undefined,
+  assetPrefix: isGithubPages ? `/${repo}/` : undefined,
+};
+
