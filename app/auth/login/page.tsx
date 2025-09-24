@@ -6,6 +6,12 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useI18n } from '@/components/I18nProvider'
 
+// Fix: compute BASE so logo works on GitHub Pages
+const REPO = 'carmate'
+const BASE =
+  process.env.NEXT_PUBLIC_BASE_PATH ||
+  (process.env.NODE_ENV === 'production' ? `/${REPO}` : '')
+
 export default function Login() {
   const router = useRouter()
   const sb = supabaseBrowser()
@@ -25,13 +31,15 @@ export default function Login() {
     <main className="min-h-[calc(100vh-64px)] flex items-center justify-center p-6">
       <div className="w-full max-w-sm card p-6">
         <div className="flex flex-col items-center gap-3 mb-4">
+          {/* Fix: prefix logo with BASE */}
           <Image
-            src="/logo-carmate.png"
+            src={`${BASE}/logo-carmate.png`}
             alt="CarMate"
             width={56}
             height={56}
             className="rounded-xl transition-transform duration-400 ease-smooth hover:scale-105"
             priority
+            unoptimized
           />
           <h1 className="text-2xl font-bold">{t('app_title')}</h1>
         </div>
