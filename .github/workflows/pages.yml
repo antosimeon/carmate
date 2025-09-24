@@ -15,9 +15,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
+      - run: npm install
       - run: npm ci
       - run: echo "GITHUB_PAGES=true" >> $GITHUB_ENV
-      - run: npm run build
+      - run: npm run dev
       - run: npx next export
       - uses: actions/upload-pages-artifact@v3
         with:
