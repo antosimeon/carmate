@@ -1,3 +1,39 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --bg-canvas: #0F0F0F; /* carbon-900 */
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg-canvas);
+  color: #f5f7fa;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.btn {
+  @apply inline-flex items-center gap-2 rounded-lg px-3 py-2 transition-colors;
+}
+.btn-primary {
+  @apply bg-racing-accent text-white hover:bg-red-600;
+}
+.btn-ghost {
+  @apply border border-carbon-600 hover:bg-carbon-700;
+}
+.card {
+  @apply rounded-xl2 bg-carbon-700 shadow-soft border border-carbon-600;
+}
+/* Dark-friendly form defaults */
+input, select, textarea {
+  @apply rounded-lg border border-carbon-600 bg-carbon-800 text-white placeholder-white/50;
+}
+input:focus, select:focus, textarea:focus {
+  @apply outline-none ring-2 ring-racing-accent/60;
+}
+
