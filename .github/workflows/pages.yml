@@ -19,6 +19,7 @@ jobs:
       - run: npm ci
       - run: echo "GITHUB_PAGES=true" >> $GITHUB_ENV
       - run: npm run build
+      - run: touch out/.nojekyll   # ensure _next/ is served
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./out
