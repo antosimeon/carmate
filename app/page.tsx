@@ -6,6 +6,7 @@ import { supabaseBrowser } from '@/lib/supabase'
 import { format } from 'date-fns'
 import { Car, Wrench, Repeat, Settings, Plus, LogOut, Trash2 } from 'lucide-react'
 import { useI18n } from '@/components/I18nProvider'
+import Header from '@/components/Header' // ⬅️ added
 
 type Tab = 'vehicles' | 'reparations' | 'recurring-bills'
 
@@ -99,42 +100,48 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-[240px_1fr]">
-      {/* Sidebar */}
-      <aside className="card p-4">
-        <nav className="space-y-1">
-          <SidebarItem icon={<Car size={18} />} label={t('vehicles')} active={tab==='vehicles'} onClick={() => setTab('vehicles')} />
-          <SidebarItem icon={<Wrench size={18} />} label={t('reparations')} active={tab==='reparations'} onClick={() => setTab('reparations')} />
-          <SidebarItem icon={<Repeat size={18} />} label={t('recurring_bills')} active={tab==='recurring-bills'} onClick={() => setTab('recurring-bills')} />
-          <div className="mt-4 border-t" style={{ borderColor: 'var(--line)' }}>
-            <div className="pt-3">
-              <SidebarItem icon={<Settings size={18} />} label={t('settings')} disabled />
+    <>
+      {/* ⬇️ Top bar only on the dashboard */}
+      <Header />
+
+      {/* Your original dashboard content */}
+      <div className="mx-auto max-w-6xl grid grid-cols-1 gap-6 md:grid-cols-[240px_1fr] px-4 py-6">
+        {/* Sidebar */}
+        <aside className="card p-4">
+          <nav className="space-y-1">
+            <SidebarItem icon={<Car size={18} />} label={t('vehicles')} active={tab==='vehicles'} onClick={() => setTab('vehicles')} />
+            <SidebarItem icon={<Wrench size={18} />} label={t('reparations')} active={tab==='reparations'} onClick={() => setTab('reparations')} />
+            <SidebarItem icon={<Repeat size={18} />} label={t('recurring_bills')} active={tab==='recurring-bills'} onClick={() => setTab('recurring-bills')} />
+            <div className="mt-4 border-t" style={{ borderColor: 'var(--line)' }}>
+              <div className="pt-3">
+                <SidebarItem icon={<Settings size={18} />} label={t('settings')} disabled />
+              </div>
             </div>
+          </nav>
+          <button onClick={logout} className="btn btn-ghost mt-6 w-full justify-center text-sm">
+            <LogOut size={16} /> {t('logout')}
+          </button>
+        </aside>
+
+        {/* Content */}
+        <section className="space-y-6">
+          {/* KPI Cards */}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <KpiCard title={t('total_vehicles')} value={vehicles.length.toString()} icon={<Car size={18} />} />
+            <KpiCard title={t('upcoming_bills')} value="—" icon={<Repeat size={18} />} />
+            <KpiCard title={t('open_reparations')} value="—" icon={<Wrench size={18} />} />
           </div>
-        </nav>
-        <button onClick={logout} className="btn btn-ghost mt-6 w-full justify-center text-sm">
-          <LogOut size={16} /> {t('logout')}
-        </button>
-      </aside>
 
-      {/* Content */}
-      <section className="space-y-6">
-        {/* KPI Cards */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <KpiCard title={t('total_vehicles')} value={vehicles.length.toString()} icon={<Car size={18} />} />
-          <KpiCard title={t('upcoming_bills')} value="—" icon={<Repeat size={18} />} />
-          <KpiCard title={t('open_reparations')} value="—" icon={<Wrench size={18} />} />
-        </div>
-
-        {/* Panel */}
-        <div className="card p-4">
-          <PanelHeader tab={tab} />
-          {tab === 'vehicles' && <Vehicles t={t} data={rows} onAdd={addVehicle} onDelete={deleteVehicle} />}
-          {tab === 'reparations' && <Reparations t={t} data={rows} vehicles={vehicles} onAdd={addReparation} onDelete={deleteReparation} />}
-          {tab === 'recurring-bills' && <RecurringBills t={t} data={rows} vehicles={vehicles} onAdd={addRecurringBill} onDelete={deleteRecurringBill} />}
-        </div>
-      </section>
-    </div>
+          {/* Panel */}
+          <div className="card p-4">
+            <PanelHeader tab={tab} />
+            {tab === 'vehicles' && <Vehicles t={t} data={rows} onAdd={addVehicle} onDelete={deleteVehicle} />}
+            {tab === 'reparations' && <Reparations t={t} data={rows} vehicles={vehicles} onAdd={addReparation} onDelete={deleteReparation} />}
+            {tab === 'recurring-bills' && <RecurringBills t={t} data={rows} vehicles={vehicles} onAdd={addRecurringBill} onDelete={deleteRecurringBill} />}
+          </div>
+        </section>
+      </div>
+    </>
   )
 }
 
