@@ -1,18 +1,46 @@
 'use client'
 
-import LocaleToggle from '@/components/LocaleToggle'
+import Image from 'next/image'
 import { useI18n } from '@/components/I18nProvider'
 
 export default function Header() {
-  const { t } = useI18n()
+  const { t, locale, setLocale } = useI18n()
+
   return (
-    <header className="sticky top-0 z-20 h-16 w-full bg-racing-red text-white shadow-soft">
+    <header className="header sticky top-0 z-20 h-16 w-full">
       <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4">
-        <div className="flex items-center gap-3">
-          <span className="inline-block h-3 w-3 rounded-full bg-white/90 shadow" />
+        <div className="flex items-center gap-2">
+          {/* LOGO */}
+          <Image
+            src="/logo-carmate.png"  // assicurati che sia in /public
+            alt="CarMate"
+            width={48}
+            height={48}
+            className="rounded-lg"
+            priority
+          />
           <h1 className="text-lg font-semibold tracking-wide">{t('app_title')}</h1>
         </div>
-        <LocaleToggle />
+
+        {/* Toggle lingua (pill) */}
+        <div className="lang-pill">
+          <button
+            data-active={(locale === 'it').toString()}
+            onClick={() => setLocale('it')}
+            aria-pressed={locale === 'it'}
+            aria-label="Italiano"
+          >
+            IT
+          </button>
+          <button
+            data-active={(locale === 'en').toString()}
+            onClick={() => setLocale('en')}
+            aria-pressed={locale === 'en'}
+            aria-label="English"
+          >
+            EN
+          </button>
+        </div>
       </div>
     </header>
   )
