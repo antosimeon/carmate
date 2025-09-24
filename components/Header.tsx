@@ -1,7 +1,8 @@
 'use client'
 
-import Image from 'next/image'
 import { useI18n } from '@/components/I18nProvider'
+
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH || '' // '' locally, '/<repo>' on GitHub Pages
 
 export default function Header() {
   const { t, locale, setLocale } = useI18n()
@@ -9,20 +10,19 @@ export default function Header() {
   return (
     <header className="header sticky top-0 z-20 h-16 w-full">
       <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4">
-        <div className="flex items-center gap-2">
-          {/* LOGO */}
-          <Image
-            src="/logo-carmate.png"  // assicurati che sia in /public
+        <div className="flex items-center gap-3">
+          {/* Plain <img> so we fully control the path on GitHub Pages */}
+          <img
+            src={`${BASE}/logo-carmate.png`}
             alt="CarMate"
             width={48}
             height={48}
-            className="rounded-lg"
-            priority
+            className="rounded-xl"
           />
           <h1 className="text-lg font-semibold tracking-wide">{t('app_title')}</h1>
         </div>
 
-        {/* Toggle lingua (pill) */}
+        {/* Language toggle (pill) */}
         <div className="lang-pill">
           <button
             data-active={(locale === 'it').toString()}
@@ -45,4 +45,3 @@ export default function Header() {
     </header>
   )
 }
-
