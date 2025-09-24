@@ -1,28 +1,51 @@
 name: Deploy to GitHub Pages
+
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
+
 permissions:
   contents: read
   pages: write
   id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # Tells next.config.js we're building for GH Pages
+      GITHUB_PAGES: "true"
+      # Ensure Next.js can do a static export
+      NEXT_TELEMETRY_DISABLED: "1"
+      # If you use environment variables in build, add them here (NOT secrets)
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
-      - run: npm install
-      - run: npm ci
-      - run: echo "GITHUB_PAGES=true" >> $GITHUB_ENV
-      - run: npm run build
-      - run: touch out/.nojekyll   # ensure _next/ is served
-      - uses: actions/upload-pages-artifact@v3
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build (static export)
+        run: |
+          npm run build
+          npm run export
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          path: ./out
+          path: out
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -30,5 +53,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - id: deployment
+      - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
+
