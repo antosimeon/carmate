@@ -1,55 +1,92 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabaseBrowser } from '@/lib/supabase'
 import { format } from 'date-fns'
 
-type Tab = 'recipes' | 'vehicles' | 'reminders'
+type Tab = 'vehicles' | 'reparations' | 'recurring-bills'
 
 export default function Dashboard() {
   const router = useRouter()
   const sb = supabaseBrowser()
-  const [tab, setTab] = useState<Tab>('recipes')
-  const [data, setData] = useState<any[]>([])
+
+  const [tab, setTab] = useState<Tab>('vehicles')
+  const [vehicles, setVehicles] = useState<any[]>([])
+  const [rows, setRows] = useState<any[]>([])
   const [ready, setReady] = useState(false)
 
+  // Load on tab change (after auth)
   useEffect(() => {
     ;(async () => {
       const { data: auth } = await sb.auth.getUser()
-      if (!auth.user) {
-        router.replace('/auth/login') // respects basePath on GitHub Pages
-        return
-      }
+      if (!auth.user) { router.replace('/auth/login'); return }
       setReady(true)
-      await load()
+      await loadVehicles()
+      await loadTab()
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab])
 
-  const load = async () => {
-    const { data: rows, error } = await sb
-      .from(tab)
-      .select('*')
-      .order('created_at', { ascending: false })
-    if (error) {
-      console.error(error)
-      setData([])
-      return
-    }
-    setData(rows || [])
+  const loadVehicles = async () => {
+    const { data, error } = await sb.from('vehicles').select('*').order('created_at', { ascending: false })
+    if (error) { console.error(error); setVehicles([]); return }
+    setVehicles(data || [])
   }
 
-  const add = async (payload: any) => {
-    // Ensure there is at least one household and the user is a member
+  const loadTab = async () => {
+    let from = tab
+    // DB table names map
+    if (tab === 'recurring-bills') from = 'recurring_bills'
+    const { data, error } = await sb.from(from).select('*').order('created_at', { ascending: false })
+    if (error) { console.error(error); setRows([]); return }
+    setRows(data || [])
+  }
+
+  const getDefaultHouseholdId = async () => {
     const { data: hh } = await sb.from('households').select('id').limit(1).single()
-    const household_id = hh?.id ?? null
-    const { error } = await sb.from(tab).insert({ ...payload, household_id })
-    if (error) {
-      console.error(error)
-      return
-    }
-    await load()
+    return hh?.id ?? null
+  }
+
+  // CREATE
+  const addVehicle = async (payload: any) => {
+    const household_id = await getDefaultHouseholdId()
+    const { error } = await sb.from('vehicles').insert({ ...payload, household_id })
+    if (error) { console.error(error); return }
+    await loadVehicles()
+    if (tab === 'vehicles') await loadTab()
+  }
+
+  const addReparation = async (payload: any) => {
+    const household_id = await getDefaultHouseholdId()
+    const { error } = await sb.from('reparations').insert({ ...payload, household_id })
+    if (error) { console.error(error); return }
+    await loadTab()
+  }
+
+  const addRecurringBill = async (payload: any) => {
+    const household_id = await getDefaultHouseholdId()
+    const { error } = await sb.from('recurring_bills').insert({ ...payload, household_id })
+    if (error) { console.error(error); return }
+    await loadTab()
+  }
+
+  // DELETE
+  const deleteVehicle = async (id: string) => {
+    const { error } = await sb.from('vehicles').delete().eq('id', id)
+    if (error) { console.error(error); return }
+    await loadVehicles()
+    if (tab === 'vehicles') await loadTab()
+  }
+  const deleteReparation = async (id: string) => {
+    const { error } = await sb.from('reparations').delete().eq('id', id)
+    if (error) { console.error(error); return }
+    await loadTab()
+  }
+  const deleteRecurringBill = async (id: string) => {
+    const { error } = await sb.from('recurring_bills').delete().eq('id', id)
+    if (error) { console.error(error); return }
+    await loadTab()
   }
 
   const logout = async () => {
@@ -61,19 +98,17 @@ export default function Dashboard() {
     <main className="p-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-3xl font-bold">CarMate</h1>
-        <button className="px-3 py-2 rounded border" onClick={logout}>
-          Logout
-        </button>
+        <button className="px-3 py-2 rounded border" onClick={logout}>Logout</button>
       </div>
 
       <div className="flex gap-2 mb-6">
-        {(['recipes', 'vehicles', 'reminders'] as Tab[]).map((t) => (
+        {(['vehicles','reparations','recurring-bills'] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={`px-3 py-2 rounded border ${tab === t ? 'bg-black text-white' : ''}`}
           >
-            {t}
+            {t.replace('-', ' ')}
           </button>
         ))}
       </div>
@@ -82,85 +117,79 @@ export default function Dashboard() {
         <p className="text-sm text-gray-500">Checking session…</p>
       ) : (
         <>
-          {tab === 'recipes' && <Recipes data={data} onAdd={add} />}
-          {tab === 'vehicles' && <Vehicles data={data} onAdd={add} />}
-          {tab === 'reminders' && <Reminders data={data} onAdd={add} />}
+          {tab === 'vehicles' && (
+            <Vehicles
+              data={rows}
+              onAdd={addVehicle}
+              onDelete={deleteVehicle}
+            />
+          )}
+          {tab === 'reparations' && (
+            <Reparations
+              data={rows}
+              vehicles={vehicles}
+              onAdd={addReparation}
+              onDelete={deleteReparation}
+            />
+          )}
+          {tab === 'recurring-bills' && (
+            <RecurringBills
+              data={rows}
+              vehicles={vehicles}
+              onAdd={addRecurringBill}
+              onDelete={deleteRecurringBill}
+            />
+          )}
         </>
       )}
     </main>
   )
 }
 
-function Recipes({ data, onAdd }: { data: any[]; onAdd: (p: any) => void }) {
-  const [title, setTitle] = useState('')
-  const [notes, setNotes] = useState('')
-  return (
-    <section className="space-y-4">
-      <div className="flex gap-2">
-        <input
-          className="border p-2 rounded flex-1"
-          placeholder="Recipe title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-        <button
-          className="px-3 py-2 rounded bg-black text-white"
-          onClick={() => {
-            if (!title.trim()) return
-            onAdd({ title, notes })
-            setTitle('')
-            setNotes('')
-          }}
-        >
-          Add
-        </button>
-      </div>
-      <textarea
-        className="w-full border p-2 rounded"
-        placeholder="Notes"
-        value={notes}
-        onChange={(e) => setNotes(e.target.value)}
-      />
-      <ul className="divide-y">
-        {data.map((r) => (
-          <li key={r.id} className="py-3">
-            <b>{r.title}</b>
-            {r.tags?.length ? ` · ${r.tags.join(',')}` : ''}
-            <div className="text-sm text-gray-500">{r.notes}</div>
-          </li>
-        ))}
-      </ul>
-    </section>
-  )
-}
+/* ---------------- Components ---------------- */
 
-function Vehicles({ data, onAdd }: { data: any[]; onAdd: (p: any) => void }) {
+function Vehicles({
+  data,
+  onAdd,
+  onDelete,
+}: {
+  data: any[]
+  onAdd: (p: any) => void
+  onDelete: (id: string) => void
+}) {
   const [nickname, setNickname] = useState('')
+  const [make, setMake] = useState('')
+  const [model, setModel] = useState('')
+  const [plate, setPlate] = useState('')
+  const clear = () => { setNickname(''); setMake(''); setModel(''); setPlate('') }
+
   return (
     <section className="space-y-4">
-      <div className="flex gap-2">
-        <input
-          className="border p-2 rounded flex-1"
-          placeholder="Nickname"
-          value={nickname}
-          onChange={(e) => setNickname(e.target.value)}
-        />
-        <button
-          className="px-3 py-2 rounded bg-black text-white"
-          onClick={() => {
-            if (!nickname.trim()) return
-            onAdd({ nickname })
-            setNickname('')
-          }}
-        >
-          Add
-        </button>
+      <div className="grid gap-2 sm:grid-cols-4">
+        <input className="border p-2 rounded" placeholder="Nickname" value={nickname} onChange={(e)=>setNickname(e.target.value)} />
+        <input className="border p-2 rounded" placeholder="Make" value={make} onChange={(e)=>setMake(e.target.value)} />
+        <input className="border p-2 rounded" placeholder="Model" value={model} onChange={(e)=>setModel(e.target.value)} />
+        <input className="border p-2 rounded" placeholder="Plate" value={plate} onChange={(e)=>setPlate(e.target.value)} />
       </div>
+      <button
+        className="px-3 py-2 rounded bg-black text-white"
+        onClick={() => {
+          if (!nickname && !make && !model) return
+          onAdd({ nickname, make, model, plate })
+          clear()
+        }}
+      >
+        Add vehicle
+      </button>
+
       <ul className="divide-y">
         {data.map((v) => (
-          <li key={v.id} className="py-3">
-            <b>{v.nickname || `${v.make || ''} ${v.model || ''}`}</b>
-            <div className="text-sm text-gray-500">{v.plate || ''}</div>
+          <li key={v.id} className="py-3 flex items-center justify-between">
+            <div>
+              <b>{v.nickname || `${v.make || ''} ${v.model || ''}`}</b>
+              <div className="text-sm text-gray-500">{[v.plate, v.year].filter(Boolean).join(' · ')}</div>
+            </div>
+            <button className="text-sm border px-2 py-1 rounded hover:bg-gray-50" onClick={() => onDelete(v.id)}>Delete</button>
           </li>
         ))}
       </ul>
@@ -168,50 +197,121 @@ function Vehicles({ data, onAdd }: { data: any[]; onAdd: (p: any) => void }) {
   )
 }
 
-function Reminders({ data, onAdd }: { data: any[]; onAdd: (p: any) => void }) {
+function Reparations({
+  data,
+  vehicles,
+  onAdd,
+  onDelete,
+}: {
+  data: any[]
+  vehicles: any[]
+  onAdd: (p: any) => void
+  onDelete: (id: string) => void
+}) {
+  const [vehicleId, setVehicleId] = useState<string>('')
   const [title, setTitle] = useState('')
-  const [due, setDue] = useState('')
+  const [cost, setCost] = useState<string>('')
+
+  const vehicleMap = useMemo(() => Object.fromEntries(vehicles.map(v => [v.id, v])), [vehicles])
+
   return (
     <section className="space-y-4">
-      <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
-        <input
-          className="border p-2 rounded"
-          placeholder="Reminder title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-        <input
-          type="date"
-          className="border p-2 rounded"
-          value={due}
-          onChange={(e) => setDue(e.target.value)}
-        />
+      <div className="grid gap-2 sm:grid-cols-[1fr_2fr_1fr_auto]">
+        <select className="border p-2 rounded" value={vehicleId} onChange={e=>setVehicleId(e.target.value)}>
+          <option value="">Select vehicle</option>
+          {vehicles.map(v => (
+            <option key={v.id} value={v.id}>{v.nickname || `${v.make || ''} ${v.model || ''}`}</option>
+          ))}
+        </select>
+        <input className="border p-2 rounded" placeholder="Reparation title" value={title} onChange={e=>setTitle(e.target.value)} />
+        <input className="border p-2 rounded" placeholder="Cost (e.g. 120.50)" value={cost} onChange={e=>setCost(e.target.value)} />
         <button
           className="px-3 py-2 rounded bg-black text-white"
           onClick={() => {
-            if (!title.trim() || !due) return
-            onAdd({ title, due_date: due })
-            setTitle('')
-            setDue('')
+            if (!vehicleId || !title.trim()) return
+            const amount = cost ? Number(cost) : null
+            onAdd({ vehicle_id: vehicleId, title, amount })
+            setTitle(''); setCost('')
           }}
         >
           Add
         </button>
       </div>
+
       <ul className="divide-y">
-        {data.map((it) => (
-          <li key={it.id} className="py-3 flex justify-between">
+        {data.map((r) => (
+          <li key={r.id} className="py-3 flex items-center justify-between">
             <div>
-              <b>{it.title}</b>
+              <b>{r.title}</b> {typeof r.amount === 'number' ? `· €${r.amount.toFixed(2)}` : ''}
               <div className="text-sm text-gray-500">
-                Due {it.due_date ? format(new Date(it.due_date), 'PPP') : '—'}
+                {vehicleMap[r.vehicle_id] ? (vehicleMap[r.vehicle_id].nickname || `${vehicleMap[r.vehicle_id].make||''} ${vehicleMap[r.vehicle_id].model||''}`) : '—'}
+                {r.performed_at ? ` · ${format(new Date(r.performed_at), 'PPP')}` : ''}
               </div>
             </div>
-            {it.done ? (
-              <span className="text-green-600">Done</span>
-            ) : (
-              <span className="text-amber-600">Open</span>
-            )}
+            <button className="text-sm border px-2 py-1 rounded hover:bg-gray-50" onClick={() => onDelete(r.id)}>Delete</button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+function RecurringBills({
+  data,
+  vehicles,
+  onAdd,
+  onDelete,
+}: {
+  data: any[]
+  vehicles: any[]
+  onAdd: (p: any) => void
+  onDelete: (id: string) => void
+}) {
+  const [vehicleId, setVehicleId] = useState<string>('')
+  const [title, setTitle] = useState('')
+  const [amount, setAmount] = useState<string>('') // monthly amount
+  const [interval, setInterval] = useState<'monthly'|'yearly'>('monthly')
+  const [nextDue, setNextDue] = useState('')
+
+  const vehicleLabel = (v:any) => v.nickname || `${v.make || ''} ${v.model || ''}`
+
+  return (
+    <section className="space-y-4">
+      <div className="grid gap-2 sm:grid-cols-[1fr_2fr_1fr_1fr_1fr_auto]">
+        <select className="border p-2 rounded" value={vehicleId} onChange={e=>setVehicleId(e.target.value)}>
+          <option value="">Select vehicle</option>
+          {vehicles.map(v => <option key={v.id} value={v.id}>{vehicleLabel(v)}</option>)}
+        </select>
+        <input className="border p-2 rounded" placeholder="Bill name (e.g. Insurance)" value={title} onChange={e=>setTitle(e.target.value)} />
+        <input className="border p-2 rounded" placeholder="Amount (e.g. 50)" value={amount} onChange={e=>setAmount(e.target.value)} />
+        <select className="border p-2 rounded" value={interval} onChange={e=>setInterval(e.target.value as any)}>
+          <option value="monthly">Monthly</option>
+          <option value="yearly">Yearly</option>
+        </select>
+        <input type="date" className="border p-2 rounded" value={nextDue} onChange={e=>setNextDue(e.target.value)} />
+        <button
+          className="px-3 py-2 rounded bg-black text-white"
+          onClick={() => {
+            if (!vehicleId || !title.trim() || !nextDue) return
+            const amt = amount ? Number(amount) : null
+            onAdd({ vehicle_id: vehicleId, title, amount: amt, interval, next_due: nextDue })
+            setTitle(''); setAmount(''); setNextDue('')
+          }}
+        >
+          Add
+        </button>
+      </div>
+
+      <ul className="divide-y">
+        {data.map((b) => (
+          <li key={b.id} className="py-3 flex items-center justify-between">
+            <div>
+              <b>{b.title}</b>{typeof b.amount === 'number' ? ` · €${b.amount.toFixed(2)}` : ''}
+              <div className="text-sm text-gray-500">
+                {b.interval ? `${b.interval}` : ''}{b.next_due ? ` · next due ${format(new Date(b.next_due), 'PPP')}` : ''}
+              </div>
+            </div>
+            <button className="text-sm border px-2 py-1 rounded hover:bg-gray-50" onClick={() => onDelete(b.id)}>Delete</button>
           </li>
         ))}
       </ul>
