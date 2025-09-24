@@ -23,8 +23,8 @@
         "name": "next"
       }
     ],
-    "baseUrl": ".", // <— add this
-    "paths": { // <— and this
+    "baseUrl": ".",
+    "paths": {
       "@/*": [
         "./*"
       ]
@@ -32,11 +32,14 @@
   },
   "include": [
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
+    "app/**/*",
+    "lib/**/*",
+    "components/**/*",
     ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "supabase/functions/**",
+    ".next"
   ]
 }

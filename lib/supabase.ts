@@ -1,13 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Client-side instance (safe because it only uses NEXT_PUBLIC_* keys)
-export const supabaseBrowser = () =>
-  createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
-import { createClient } from '@supabase/supabase-js'
-
 export const supabaseBrowser = () =>
   createClient(
     "https://uqmaubpvilaxwipffjjm.supabase.co", // hardcoded public URL
