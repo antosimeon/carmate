@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useI18n } from '@/components/I18nProvider'
 
-// Fix: compute BASE so logo works on GitHub Pages
 const REPO = 'carmate'
 const BASE =
   process.env.NEXT_PUBLIC_BASE_PATH ||
@@ -27,11 +26,16 @@ export default function Login() {
     router.replace('/')
   }
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    await signIn()
+  }
+
   return (
-    <main className="min-h-[calc(100vh-64px)] flex items-center justify-center p-6">
+    <main className="min-h-[calc(100vh-64px)] flex flex-col items-center justify-center p-6">
+      {/* Login card */}
       <div className="w-full max-w-sm card p-6">
         <div className="flex flex-col items-center gap-3 mb-4">
-          {/* Fix: prefix logo with BASE */}
           <Image
             src={`${BASE}/logo-carmate.png`}
             alt="CarMate"
@@ -41,10 +45,11 @@ export default function Login() {
             priority
             unoptimized
           />
-          <h1 className="text-2xl font-bold">{t('app_title')}</h1>
+          <h1 className="text-2xl font-bold">{t('login')}</h1>
         </div>
 
-        <div className="space-y-3">
+        {/* ✅ Wrap inputs in a form so Enter works */}
+        <form onSubmit={handleSubmit} className="space-y-3">
           <input
             className="input"
             placeholder={t('email')}
@@ -61,13 +66,21 @@ export default function Login() {
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="current-password"
           />
-          <button className="btn btn-primary w-full" onClick={signIn}>
+          <button type="submit" className="btn btn-primary w-full">
             {t('sign_in')}
           </button>
           {error && <p className="text-sm text-red-600">{error}</p>}
           <p className="text-xs text-[var(--muted)]">{t('ask_admin')}</p>
-        </div>
+        </form>
       </div>
+
+      {/* Copyright */}
+      <p
+        className="mt-6 text-xs text-muted-foreground text-center"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 12px)' }}
+      >
+        © {new Date().getFullYear()} Antonello Simeon
+      </p>
     </main>
   )
 }
