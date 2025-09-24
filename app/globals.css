@@ -29,4 +29,11 @@ body {
 .card {
   @apply rounded-xl2 bg-carbon-700 shadow-soft border border-carbon-600;
 }
+/* Dark-friendly form defaults */
+input, select, textarea {
+  @apply rounded-lg border border-carbon-600 bg-carbon-800 text-white placeholder-white/50;
+}
+input:focus, select:focus, textarea:focus {
+  @apply outline-none ring-2 ring-racing-accent/60;
+}
 

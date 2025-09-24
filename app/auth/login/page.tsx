@@ -14,44 +14,43 @@ export default function Login() {
   const signIn = async () => {
     setError(null)
     const { error } = await sb.auth.signInWithPassword({ email, password })
-    if (error) {
-      setError(error.message)
-      return
-    }
-    router.replace('/') // respects basePath when deployed to GitHub Pages
+    if (error) return setError(error.message)
+    router.replace('/')
   }
+
+  const inputCls =
+    'w-full rounded-lg border border-carbon-600 bg-carbon-800 p-2 text-white placeholder-white/50 ' +
+    'focus:outline-none focus:ring-2 focus:ring-racing-accent/60'
 
   return (
     <main className="min-h-screen flex items-center justify-center p-6">
-      <div className="w-full max-w-sm space-y-4">
+      <div className="w-full max-w-sm space-y-4 card p-6 bg-carbon-800">
         <h1 className="text-2xl font-bold">CarMate</h1>
 
         <input
-          className="w-full border p-2 rounded"
+          className={inputCls}
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          autoComplete="email"
+          inputMode="email"
         />
         <input
-          className="w-full border p-2 rounded"
+          className={inputCls}
           placeholder="Password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          autoComplete="current-password"
         />
 
-        <button
-          className="w-full bg-black text-white p-2 rounded"
-          onClick={signIn}
-        >
+        <button className="btn btn-primary w-full" onClick={signIn}>
           Sign in
         </button>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-400">{error}</p>}
 
-        <p className="text-xs text-gray-500">
-          Don’t have an account? Ask the admin.
-        </p>
+        <p className="text-xs text-white/60">Don’t have an account? Ask the admin.</p>
       </div>
     </main>
   )
