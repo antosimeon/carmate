@@ -39,16 +39,15 @@ export default function Login() {
           <Image
             src={`${BASE}/logo-carmate.png`}
             alt="CarMate"
-            width={56}
-            height={56}
+            width={100}
+            height={100}
             className="rounded-xl transition-transform duration-400 ease-smooth hover:scale-105"
             priority
             unoptimized
           />
-          <h1 className="text-2xl font-bold">{t('login')}</h1>
         </div>
 
-        {/* ✅ Wrap inputs in a form so Enter works */}
+        {/* Enter submits the form */}
         <form onSubmit={handleSubmit} className="space-y-3">
           <input
             className="input"
@@ -66,7 +65,10 @@ export default function Login() {
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="current-password"
           />
-          <button type="submit" className="btn btn-primary w-full">
+          <button
+            type="submit"
+            className="btn btn-primary w-full flex justify-center"
+          >
             {t('sign_in')}
           </button>
           {error && <p className="text-sm text-red-600">{error}</p>}
@@ -74,7 +76,7 @@ export default function Login() {
         </form>
       </div>
 
-      {/* Copyright */}
+      {/* Copyright with iOS safe-area padding */}
       <p
         className="mt-6 text-xs text-muted-foreground text-center"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 12px)' }}
