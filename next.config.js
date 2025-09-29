@@ -1,23 +1,40 @@
-// next.config.js
-const isGithubPages = process.env.GITHUB_PAGES === 'true';
-const repo = 'carmate';
-
 /** @type {import('next').NextConfig} */
-module.exports = {
-  // Needed for GitHub Pages
+const REPO = 'carmate'
+const isProd = process.env.NODE_ENV === 'production'
+const baseFromEnv = process.env.NEXT_PUBLIC_BASE_PATH
+
+const nextConfig = {
+  // Static export per GitHub Pages
   output: 'export',
-  trailingSlash: true,
 
-  // Make next/image work with static export
+  // BasePath e assetPrefix per servire asset e rotte sotto /<repo>
+  basePath: isProd ? (baseFromEnv || `/${REPO}`) : '',
+  assetPrefix: isProd ? (baseFromEnv || `/${REPO}/`) : undefined,
+
   images: { unoptimized: true },
+  trailingSlash: true, // consigliato su Pages
 
-  // Prefix all routes and assets when deploying to GH Pages
-  basePath: isGithubPages ? `/${repo}` : undefined,
-  assetPrefix: isGithubPages ? `/${repo}/` : undefined,
+  // Evita dipendenze Node-only nel bundle client (ws/bufferutil/utf-8-validate)
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        ws: false,
+        'utf-8-validate': false,
+        bufferutil: false,
+      }
+      config.resolve.alias = {
+        ...(config.resolve.alias || {}),
+        ws: false,
+        'utf-8-validate': false,
+        bufferutil: false,
+      }
+    }
+    return config
+  },
 
-  // Expose the base path to client code
-  env: {
-    NEXT_PUBLIC_BASE_PATH: isGithubPages ? `/${repo}` : ''
-  }
-};
+  experimental: { esmExternals: 'loose' },
+}
+
+module.exports = nextConfig
 
