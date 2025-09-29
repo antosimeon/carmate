@@ -1,14 +1,11 @@
 'use client'
+export const dynamic = 'force-static'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabaseBrowser } from '@/lib/supabase'
 import Image from 'next/image'
-
-const REPO = 'carmate'
-const BASE =
-  process.env.NEXT_PUBLIC_BASE_PATH ||
-  (process.env.NODE_ENV === 'production' ? `/${REPO}` : '')
+import { supabaseBrowser } from '@/lib/supabase'
+import { asset } from '@/lib/basePath'
 
 export default function LoginPage() {
   const sb = supabaseBrowser()
@@ -20,8 +17,7 @@ export default function LoginPage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    setError(null)
+    setLoading(true); setError(null)
     try {
       const { error } = await sb.auth.signInWithPassword({ email, password })
       if (error) throw error
@@ -37,46 +33,28 @@ export default function LoginPage() {
     <div className="card p-6 w-full max-w-sm">
       <div className="flex flex-col items-center mb-6">
         <Image
-          src={`${BASE}/logo-carmate.png`}
+          src={asset('/logo-carmate.png')}
           alt="CarMate"
-          width={80}
-          height={80}
+          width={96}
+          height={96}
           className="rounded-md mb-2"
           unoptimized
         />
       </div>
       <form onSubmit={onSubmit} className="space-y-3">
-        <input
-          type="email"
-          className="input w-full"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          autoComplete="email"
-          inputMode="email"
-        />
-        <input
-          type="password"
-          className="input w-full"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          autoComplete="current-password"
-        />
-        <button
-          type="submit"
-          className="btn btn-primary w-full flex justify-center"
-          disabled={loading}
-        >
+        <input type="email" className="input w-full" placeholder="Email"
+               value={email} onChange={(e)=>setEmail(e.target.value)} required />
+        <input type="password" className="input w-full" placeholder="Password"
+               value={password} onChange={(e)=>setPassword(e.target.value)} required />
+        <button type="submit" className="btn btn-primary w-full flex justify-center" disabled={loading}>
           {loading ? 'Attendere…' : 'Accedi'}
         </button>
         {error && <p className="text-sm text-red-500">{error}</p>}
       </form>
-      <p className="mt-6 text-center text-xs text-[color:var(--text)]/60" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 12px)' }}>
+      <p className="mt-6 text-center text-xs text-[color:var(--text)]/60">
         © {new Date().getFullYear()} Antonello Simeon
       </p>
     </div>
   )
 }
+

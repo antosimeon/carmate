@@ -9,13 +9,20 @@
   --accent: #3b82f6;
 }
 
-body {
-  background: var(--bg);
-  color: var(--text);
+body { background: var(--bg); color: var(--text); }
+
+/* Card “come in dashboard” */
+.card {
+  @apply rounded-2xl border bg-white shadow-sm;
+  border-color: var(--line);
 }
 
-.card { @apply rounded-2xl border p-4 bg-white; border-color: var(--line); }
+/* Bottoni/inputs coerenti */
 .btn { @apply inline-flex items-center gap-2 rounded-lg px-3 py-2 border; border-color: var(--line); }
 .btn-primary { @apply text-white; background: var(--accent); border-color: var(--accent); }
 .btn-ghost { @apply bg-transparent; }
 .input { @apply w-full rounded-lg border px-3 py-2; border-color: var(--line); }
+
+/* Titolo brand header (più “bold” e stretto) */
+.brand-title { @apply text-lg font-bold tracking-tight text-[var(--text)]; }
+

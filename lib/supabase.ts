@@ -1,6 +1,5 @@
 'use client'
 import { createClient } from '@supabase/supabase-js'
-
 export function supabaseBrowser() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

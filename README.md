@@ -1,12 +1,14 @@
-# CarMate (Next.js + Supabase)
+# CarMate MVP
 
-Setup rapido:
-1. Copia `.env.example` in `.env.local` e inserisci le chiavi Supabase.
-2. `npm install`
-3. `npm run dev`
+Install:
 
-Deploy GitHub Pages:
-- Imposta `NEXT_PUBLIC_BASE_PATH=/carmate` in `.env` (o usa `next.config.js` già configurato).
-- `npm run export` produce `out/` statico.
+```
+npm install
+npm run dev
+```
 
-Ricorda di eseguire su Supabase le migrazioni (tabelle + RLS) e creare il bucket `invoices`.
+Build static for GitHub Pages:
+
+```
+npm run export
+```
