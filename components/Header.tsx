@@ -1,7 +1,6 @@
 'use client'
 import Image from 'next/image'
 import { asset } from '@/lib/basePath'
-import LanguageToggle from '@/components/LanguageToggle'
 
 export default function Header() {
   return (
@@ -20,7 +19,7 @@ export default function Header() {
           <h1 className="text-lg font-semibold tracking-wide">CarMate</h1>
         </div>
         {/* Language toggle on the right */}
-        <LanguageToggle />
+        <div />
       </div>
     </header>
   )
