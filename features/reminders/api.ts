@@ -7,9 +7,11 @@ export async function addReminder(payload: ReminderPayload) {
   if (error) throw error
   return data
 }
-export async function listReminders() {
+export async function listReminders(vehicle_id?: string) {
   const sb = supabaseBrowser()
-  const { data, error } = await sb.from('reminders').select('*').order('due_date', { ascending: true })
+  let q = sb.from('reminders').select('*').order('due_date', { ascending: true })
+  if (vehicle_id) q = q.eq('vehicle_id', vehicle_id)
+  const { data, error } = await q
   if (error) throw error
   return data || []
 }
